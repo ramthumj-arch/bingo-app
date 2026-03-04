@@ -1,8 +1,3 @@
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
-
-<script src="script.js"></script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +7,15 @@
 </head>
 <body>
   <div class="app">
+  </div>
+   <!-- Firebase MUST be loaded here, inside the body, before script.js -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+
+  <!-- Your script must load AFTER Firebase -->
+  <script src="script.js"></script>
+</body>
+</html>
 
     <!-- HOME PAGE -->
     <div id="homeScreen">
