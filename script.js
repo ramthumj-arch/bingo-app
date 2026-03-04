@@ -72,6 +72,21 @@ function generateGameId() {
 /* ---------------------------------------------------------
    HOST GAME
 --------------------------------------------------------- */
+function listenForPlayers() {
+  // Real-time update of joined players
+  db.ref(`games/${gameId}/players`).on("value", snapshot => {
+    const players = snapshot.val() || {};
+    playerListDiv.innerHTML = "";
+
+    Object.keys(players).forEach(name => {
+      const div = document.createElement("div");
+      div.classList.add("player-name");
+      div.textContent = name;
+      playerListDiv.appendChild(div);
+    });
+  });
+}
+
 hostBtn.addEventListener("click", () => {
   gameId = generateGameId();
   hostGameCode.textContent = gameId;
@@ -87,17 +102,8 @@ hostBtn.addEventListener("click", () => {
   calledList.innerHTML = "";
   playerListDiv.innerHTML = "";
 
-  // Listen for players joining
-  db.ref(`games/${gameId}/players`).on("value", snapshot => {
-    const players = snapshot.val() || {};
-    playerListDiv.innerHTML = "";
-    Object.keys(players).forEach(name => {
-      const div = document.createElement("div");
-      div.classList.add("player-name");
-      div.textContent = name;
-      playerListDiv.appendChild(div);
-    });
-  });
+  // Start listening for players immediately
+  listenForPlayers();
 
   show(hostScreen);
 });
@@ -116,7 +122,7 @@ joinGameStartBtn.addEventListener("click", () => {
     return;
   }
 
-  // Check game exists first
+  // Check that the game exists
   db.ref(`games/${gameId}`).once("value").then(snapshot => {
     if (!snapshot.exists()) {
       alert("Game does not exist.");
