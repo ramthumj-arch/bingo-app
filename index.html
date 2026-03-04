@@ -1,13 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Team Bingo</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
 <body>
-  <div class="app">
+  <div id="homeScreen">
     <h1>Team Bingo</h1>
+
+    <button id="createGameBtn">Create New Game</button>
+
+    <h3>Join a Game</h3>
+    <input id="joinCodeInput" placeholder="Enter Game Code" />
+    <button id="joinGameBtn">Join</button>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+    <h2>Game Code: <span id="gameCodeDisplay"></span></h2>
 
     <div class="controls">
       <button id="newCardBtn">New Card</button>
@@ -36,4 +39,3 @@
 
   <script src="script.js"></script>
 </body>
-</html>
