@@ -4,13 +4,13 @@
 const firebaseConfig = {
   apiKey: "AIzaSyBNq30kO9C38ARmcMXrmooN7o06QTpHi0c",
   authDomain: "bingo-app-2411a.firebaseapp.com",
+  databaseURL: "https://bingo-app-2411a-default-rtdb.firebaseio.com",
   projectId: "bingo-app-2411a",
   storageBucket: "bingo-app-2411a.firebasestorage.app",
   messagingSenderId: "422075669233",
   appId: "1:422075669233:web:d9719e10e4e5bf50ebe750",
   measurementId: "G-68WJ8P5L1P"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
