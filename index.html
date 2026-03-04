@@ -1,24 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Team Bingo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 <body>
-  <div id="homeScreen">
-    <h1>Team Bingo</h1>
+  <div class="app">
 
-    <button id="createGameBtn">Create New Game</button>
+    <!-- HOME PAGE -->
+    <div id="homeScreen">
+      <h1>Team Bingo</h1>
 
-    <h3>Join a Game</h3>
-    <input id="joinCodeInput" placeholder="Enter Game Code" />
-    <button id="joinGameBtn">Join</button>
-  </div>
-
-  <div id="gameScreen" class="hidden">
-    <h2>Game Code: <span id="gameCodeDisplay"></span></h2>
-
-    <div class="controls">
-      <button id="newCardBtn">New Card</button>
-      <button id="callNumberBtn">Call Next Number</button>
-      <div id="lastNumber"></div>
+      <div class="home-buttons">
+        <button id="hostBtn">Host a Game</button>
+        <button id="joinBtn">Join a Game</button>
+      </div>
     </div>
 
-    <div class="layout">
+    <!-- HOST PAGE -->
+    <div id="hostScreen" class="hidden">
+      <h1>Host Panel</h1>
+
+      <div class="info-box">
+        <h2>Game Code:</h2>
+        <div id="hostGameCode" class="game-code"></div>
+      </div>
+
+      <div class="controls">
+        <button id="callNumberBtn">Call Next Number</button>
+        <div id="lastNumber"></div>
+      </div>
+
+      <h2>Numbers Called</h2>
+      <div id="calledList"></div>
+
+      <button class="backBtn" id="backFromHost">Back</button>
+    </div>
+
+    <!-- JOIN PAGE -->
+    <div id="joinScreen" class="hidden">
+      <h1>Join Game</h1>
+
+      <label>Your Name</label>
+      <input id="playerNameInput" placeholder="Enter your name" />
+
+      <label>Game Code</label>
+      <input id="joinCodeInput" placeholder="Enter join code" />
+
+      <button id="joinGameStartBtn">Join Game</button>
+      <button class="backBtn" id="backFromJoin">Back</button>
+    </div>
+
+    <!-- PLAYER GAME PAGE -->
+    <div id="playerScreen" class="hidden">
+      <h1>Your Bingo Card</h1>
+
       <div class="card">
         <div class="header-row">
           <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
@@ -26,16 +63,16 @@
         <div id="cardGrid" class="grid"></div>
       </div>
 
-      <div class="called">
-        <h2>Numbers Called</h2>
-        <div id="calledList"></div>
-      </div>
+      <h2>Numbers Called</h2>
+      <div id="calledListPlayer"></div>
+
+      <div id="bingoMessage" class="bingo-message hidden">BINGO! 🎉</div>
+
+      <button class="backBtn" id="backFromPlayer">Back</button>
     </div>
 
-    <div id="bingoMessage" class="bingo-message hidden">
-      BINGO! 🎉
-    </div>
   </div>
 
   <script src="script.js"></script>
 </body>
+</html>
