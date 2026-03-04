@@ -1,4 +1,6 @@
-// --- FIREBASE SETUP (TOP OF FILE) ---
+/* ---------------------------------------------------------
+   FIREBASE SETUP (MUST BE AT TOP)
+--------------------------------------------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyBNq30kO9C38ARmcMXrmooN7o06QTpHi0c",
   authDomain: "bingo-app-2411a.firebaseapp.com",
@@ -9,47 +11,48 @@ const firebaseConfig = {
   measurementId: "G-68WJ8P5L1P"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Screens
+/* ---------------------------------------------------------
+   SCREEN ELEMENTS
+--------------------------------------------------------- */
 const homeScreen = document.getElementById("homeScreen");
 const hostScreen = document.getElementById("hostScreen");
 const joinScreen = document.getElementById("joinScreen");
 const playerScreen = document.getElementById("playerScreen");
 
-// Buttons
 const hostBtn = document.getElementById("hostBtn");
 const joinBtn = document.getElementById("joinBtn");
 const backFromHost = document.getElementById("backFromHost");
 const backFromJoin = document.getElementById("backFromJoin");
 const backFromPlayer = document.getElementById("backFromPlayer");
 
-// Host elements
 const hostGameCode = document.getElementById("hostGameCode");
 const callNumberBtn = document.getElementById("callNumberBtn");
 const lastNumberDiv = document.getElementById("lastNumber");
 const calledList = document.getElementById("calledList");
 
-// Join elements
 const playerNameInput = document.getElementById("playerNameInput");
 const joinCodeInput = document.getElementById("joinCodeInput");
 const joinGameStartBtn = document.getElementById("joinGameStartBtn");
 
-// Player elements
 const cardGrid = document.getElementById("cardGrid");
 const calledListPlayer = document.getElementById("calledListPlayer");
 const bingoMessage = document.getElementById("bingoMessage");
 
-// Game state
+/* ---------------------------------------------------------
+   GAME STATE
+--------------------------------------------------------- */
 let gameId = null;
 let playerName = "";
 let card = [];
 let marked = [];
 let calledNumbers = [];
 
-// Navigation helpers
+/* ---------------------------------------------------------
+   NAVIGATION
+--------------------------------------------------------- */
 function show(screen) {
   homeScreen.classList.add("hidden");
   hostScreen.classList.add("hidden");
@@ -58,22 +61,36 @@ function show(screen) {
   screen.classList.remove("hidden");
 }
 
-// Generate 6-digit code
+/* ---------------------------------------------------------
+   GAME ID GENERATOR
+--------------------------------------------------------- */
 function generateGameId() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Host a game
+/* ---------------------------------------------------------
+   HOST GAME
+--------------------------------------------------------- */
 hostBtn.addEventListener("click", () => {
   gameId = generateGameId();
   hostGameCode.textContent = gameId;
+
+  // Create Firebase session
+  db.ref("games/" + gameId).set({
+    calledNumbers: [],
+    players: {}
+  });
+
   calledNumbers = [];
   lastNumberDiv.textContent = "";
   calledList.innerHTML = "";
+
   show(hostScreen);
 });
 
-// Join a game
+/* ---------------------------------------------------------
+   JOIN GAME
+--------------------------------------------------------- */
 joinBtn.addEventListener("click", () => show(joinScreen));
 
 joinGameStartBtn.addEventListener("click", () => {
@@ -86,10 +103,26 @@ joinGameStartBtn.addEventListener("click", () => {
   }
 
   generateCard();
+
+  // Register player in Firebase
+  db.ref(`games/${gameId}/players/${playerName}`).set({
+    card: card,
+    marked: marked
+  });
+
+  // Listen for called numbers
+  db.ref(`games/${gameId}/calledNumbers`).on("value", snapshot => {
+    const nums = snapshot.val() || [];
+    calledNumbers = nums;
+    renderCalledNumbersPlayer();
+  });
+
   show(playerScreen);
 });
 
-// Host calls next number
+/* ---------------------------------------------------------
+   HOST CALLS NEXT NUMBER
+--------------------------------------------------------- */
 callNumberBtn.addEventListener("click", () => {
   if (calledNumbers.length === 75) return;
 
@@ -99,20 +132,21 @@ callNumberBtn.addEventListener("click", () => {
   } while (calledNumbers.includes(n));
 
   calledNumbers.push(n);
+
+  // Sync to Firebase
+  db.ref(`games/${gameId}/calledNumbers`).set(calledNumbers);
+
   lastNumberDiv.textContent = n;
 
   const div = document.createElement("div");
   div.classList.add("called-number");
   div.textContent = n;
   calledList.appendChild(div);
-
-  const div2 = document.createElement("div");
-  div2.classList.add("called-number");
-  div2.textContent = n;
-  calledListPlayer.appendChild(div2);
 });
 
-// Bingo card generation
+/* ---------------------------------------------------------
+   BINGO CARD GENERATION
+--------------------------------------------------------- */
 function generateColumn(min, max, count) {
   const nums = [];
   while (nums.length < count) {
@@ -148,6 +182,9 @@ function generateCard() {
   renderCard();
 }
 
+/* ---------------------------------------------------------
+   RENDER CARD
+--------------------------------------------------------- */
 function renderCard() {
   cardGrid.innerHTML = "";
   for (let r = 0; r < 5; r++) {
@@ -162,6 +199,10 @@ function renderCard() {
         if (card[r][c] === "FREE") return;
         marked[r][c] = !marked[r][c];
         renderCard();
+
+        // Sync marked squares
+        db.ref(`games/${gameId}/players/${playerName}/marked`).set(marked);
+
         if (checkBingo()) bingoMessage.classList.remove("hidden");
       });
 
@@ -170,15 +211,21 @@ function renderCard() {
   }
 }
 
-function checkBingo() {
-  for (let r = 0; r < 5; r++) if (marked[r].every(m => m)) return true;
-  for (let c = 0; c < 5; c++) if (marked.every(row => row[c])) return true;
-  if ([0,1,2,3,4].every(i => marked[i][i])) return true;
-  if ([0,1,2,3,4].every(i => marked[i][4-i])) return true;
-  return false;
+/* ---------------------------------------------------------
+   RENDER CALLED NUMBERS FOR PLAYER
+--------------------------------------------------------- */
+function renderCalledNumbersPlayer() {
+  calledListPlayer.innerHTML = "";
+  calledNumbers.forEach(n => {
+    const div = document.createElement("div");
+    div.classList.add("called-number");
+    div.textContent = n;
+    calledListPlayer.appendChild(div);
+  });
 }
 
-// Back buttons
-backFromHost.addEventListener("click", () => show(homeScreen));
-backFromJoin.addEventListener("click", () => show(homeScreen));
-backFromPlayer.addEventListener("click", () => show(homeScreen));
+/* ---------------------------------------------------------
+   BINGO CHECK
+--------------------------------------------------------- */
+function checkBingo() {
+  for (let r = 0
