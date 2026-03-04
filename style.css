@@ -1,0 +1,127 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.app {
+  max-width: 900px;
+  width: 100%;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+#lastNumber {
+  font-size: 20px;
+  font-weight: 600;
+  min-width: 120px;
+  text-align: center;
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.card {
+  background: #020617;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  gap: 4px;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cell.marked {
+  background: #22c55e;
+  color: #022c22;
+  font-weight: 700;
+}
+
+.cell.free {
+  background: #facc15;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.called {
+  flex: 1;
+}
+
+#calledList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.called-number {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #1f2937;
+  font-size: 12px;
+}
+
+.bingo-message {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.hidden {
+  display: none;
+}
