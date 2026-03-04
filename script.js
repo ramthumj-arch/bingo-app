@@ -32,6 +32,7 @@ const hostGameCode = document.getElementById("hostGameCode");
 const callNumberBtn = document.getElementById("callNumberBtn");
 const lastNumberDiv = document.getElementById("lastNumber");
 const calledList = document.getElementById("calledList");
+const playerListDiv = document.getElementById("playerList");
 
 const playerNameInput = document.getElementById("playerNameInput");
 const joinCodeInput = document.getElementById("joinCodeInput");
@@ -84,6 +85,19 @@ hostBtn.addEventListener("click", () => {
   calledNumbers = [];
   lastNumberDiv.textContent = "";
   calledList.innerHTML = "";
+  playerListDiv.innerHTML = "";
+
+  // Listen for players joining
+  db.ref(`games/${gameId}/players`).on("value", snapshot => {
+    const players = snapshot.val() || {};
+    playerListDiv.innerHTML = "";
+    Object.keys(players).forEach(name => {
+      const div = document.createElement("div");
+      div.classList.add("player-name");
+      div.textContent = name;
+      playerListDiv.appendChild(div);
+    });
+  });
 
   show(hostScreen);
 });
@@ -102,22 +116,30 @@ joinGameStartBtn.addEventListener("click", () => {
     return;
   }
 
-  generateCard();
+  // Check game exists first
+  db.ref(`games/${gameId}`).once("value").then(snapshot => {
+    if (!snapshot.exists()) {
+      alert("Game does not exist.");
+      return;
+    }
 
-  // Register player in Firebase
-  db.ref(`games/${gameId}/players/${playerName}`).set({
-    card: card,
-    marked: marked
+    generateCard();
+
+    // Register player in Firebase
+    db.ref(`games/${gameId}/players/${playerName}`).set({
+      card: card,
+      marked: marked
+    });
+
+    // Listen for called numbers
+    db.ref(`games/${gameId}/calledNumbers`).on("value", snapshot => {
+      const nums = snapshot.val() || [];
+      calledNumbers = nums;
+      renderCalledNumbersPlayer();
+    });
+
+    show(playerScreen);
   });
-
-  // Listen for called numbers
-  db.ref(`games/${gameId}/calledNumbers`).on("value", snapshot => {
-    const nums = snapshot.val() || [];
-    calledNumbers = nums;
-    renderCalledNumbersPlayer();
-  });
-
-  show(playerScreen);
 });
 
 /* ---------------------------------------------------------
