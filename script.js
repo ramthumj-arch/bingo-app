@@ -1,3 +1,113 @@
+// =========================
+// NEW: HOME + GAME ID LOGIC
+// =========================
+
+// Screens
+const homeScreen = document.getElementById("homeScreen");
+const gameScreen = document.getElementById("gameScreen");
+
+// Home screen inputs
+const hostNameInput = document.getElementById("hostNameInput");
+const playerNameInput = document.getElementById("playerNameInput");
+const joinCodeInput = document.getElementById("joinCodeInput");
+
+// Buttons
+const createGameBtn = document.getElementById("createGameBtn");
+const joinGameBtn = document.getElementById("joinGameBtn");
+const backToHomeBtn = document.getElementById("backToHomeBtn");
+
+// Game info display
+const gameCodeDisplay = document.getElementById("gameCodeDisplay");
+const playerRoleDisplay = document.getElementById("playerRoleDisplay");
+const playerNameDisplay = document.getElementById("playerNameDisplay");
+
+// Game state
+let gameId = null;
+let isHost = false;
+let playerName = "";
+
+// Generate 6‑digit join code
+function generateGameId() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Navigation helpers
+function showGameScreen() {
+  homeScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+}
+
+function showHomeScreen() {
+  gameScreen.classList.add("hidden");
+  homeScreen.classList.remove("hidden");
+
+  // Reset state
+  gameId = null;
+  isHost = false;
+  playerName = "";
+  calledNumbers = [];
+  lastNumberDiv.textContent = "";
+  calledListDiv.innerHTML = "";
+  bingoMessage.classList.add("hidden");
+}
+
+// Create Game
+createGameBtn.addEventListener("click", () => {
+  const name = hostNameInput.value.trim();
+  if (!name) {
+    alert("Please enter your name.");
+    return;
+  }
+
+  gameId = generateGameId();
+  isHost = true;
+  playerName = name;
+
+  gameCodeDisplay.textContent = gameId;
+  playerRoleDisplay.textContent = "Host";
+  playerNameDisplay.textContent = playerName;
+
+  callNumberBtn.disabled = false;
+
+  generateCard();
+  showGameScreen();
+});
+
+// Join Game
+joinGameBtn.addEventListener("click", () => {
+  const name = playerNameInput.value.trim();
+  const code = joinCodeInput.value.trim();
+
+  if (!name || !code) {
+    alert("Please enter your name and game code.");
+    return;
+  }
+
+  gameId = code;
+  isHost = false;
+  playerName = name;
+
+  gameCodeDisplay.textContent = gameId;
+  playerRoleDisplay.textContent = "Player";
+  playerNameDisplay.textContent = playerName;
+
+  callNumberBtn.disabled = true;
+
+  generateCard();
+  showGameScreen();
+});
+
+// Leave Game
+backToHomeBtn.addEventListener("click", () => {
+  showHomeScreen();
+});
+
+
+// =========================
+// ORIGINAL BINGO GAME LOGIC
+// (Your code — unchanged)
+// =========================
+
 const cardGrid = document.getElementById("cardGrid");
 const newCardBtn = document.getElementById("newCardBtn");
 const callNumberBtn = document.getElementById("callNumberBtn");
@@ -77,6 +187,7 @@ function renderCard() {
 }
 
 function callNextNumber() {
+  if (!isHost) return; // Only host can call numbers
   if (calledNumbers.length === 75) return;
 
   let n;
@@ -127,12 +238,10 @@ function checkBingo() {
 
 newCardBtn.addEventListener("click", () => {
   generateCard();
-  calledNumbers = [];
-  lastNumberDiv.textContent = "";
-  calledListDiv.innerHTML = "";
+  bingoMessage.classList.add("hidden");
 });
 
 callNumberBtn.addEventListener("click", callNextNumber);
 
-// Initial
-generateCard();
+// Start on home screen
+showHomeScreen();
