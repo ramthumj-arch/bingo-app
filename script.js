@@ -9,11 +9,13 @@ document.addEventListener("DOMContentLoaded", () => {
     projectId: "bingo-app-2411a",
     storageBucket: "bingo-app-2411a.firebasestorage.app",
     messagingSenderId: "422075669233",
-    appId: "1:422075669233:web:d9719e10e4e5bf50ebe750",
-    measurementId: "G-68WJ8P5L1P"
+    appId: "1:422075669233:web:d9719e10e4e5bf50ebe750"
   };
 
-  firebase.initializeApp(firebaseConfig);
+  // Prevent double-init if the script is ever loaded twice
+  if (!firebase.apps || !firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
   const db = firebase.database();
 
   /* ---------------------------------------------------------
@@ -44,6 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const calledListPlayer = document.getElementById("calledListPlayer");
   const bingoMessage = document.getElementById("bingoMessage");
 
+  // Basic DOM sanity check (if anything is null, nothing will work)
+  const requiredEls = [
+    homeScreen, hostScreen, joinScreen, playerScreen,
+    hostBtn, joinBtn, backFromHost, backFromJoin, backFromPlayer,
+    hostGameCode, callNumberBtn, lastNumberDiv, calledList, playerListDiv,
+    playerNameInput, joinCodeInput, joinGameStartBtn,
+    cardGrid, calledListPlayer, bingoMessage
+  ];
+  if (requiredEls.some(el => !el)) {
+    console.error("❌ Missing required DOM element(s). Check index.html ids.");
+    alert("HTML is missing one or more required elements. Check console.");
+    return;
+  }
+
   /* ---------------------------------------------------------
      GAME STATE
   --------------------------------------------------------- */
@@ -52,7 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let card = [];
   let marked = [];
   let calledNumbers = [];
-  let playersListenerRef = null;
+
+  // Keep references so we can detach listeners when leaving screens
+  let playersRef = null;
+  let calledNumbersRef = null;
 
   /* ---------------------------------------------------------
      NAVIGATION
@@ -65,22 +84,26 @@ document.addEventListener("DOMContentLoaded", () => {
     screen.classList.remove("hidden");
   }
 
-  /* ---------------------------------------------------------
-     GAME ID GENERATOR
-  --------------------------------------------------------- */
   function generateGameId() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
+  function detachListeners() {
+    if (playersRef) playersRef.off();
+    if (calledNumbersRef) calledNumbersRef.off();
+    playersRef = null;
+    calledNumbersRef = null;
+  }
+
   /* ---------------------------------------------------------
-     HOST: LISTEN FOR PLAYERS
+     HOST: PLAYERS LIST LISTENER
   --------------------------------------------------------- */
   function startPlayersListener() {
-    // Clean up previous listener if host starts a new game without refresh
-    if (playersListenerRef) playersListenerRef.off();
+    if (!gameId) return;
+    if (playersRef) playersRef.off();
 
-    playersListenerRef = db.ref(`games/${gameId}/players`);
-    playersListenerRef.on("value", (snapshot) => {
+    playersRef = db.ref(`games/${gameId}/players`);
+    playersRef.on("value", (snapshot) => {
       const players = snapshot.val() || {};
       playerListDiv.innerHTML = "";
 
@@ -90,6 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
         div.textContent = name;
         playerListDiv.appendChild(div);
       });
+    }, (err) => {
+      console.error("❌ players listener error:", err);
     });
   }
 
@@ -97,21 +122,35 @@ document.addEventListener("DOMContentLoaded", () => {
      HOST GAME
   --------------------------------------------------------- */
   hostBtn.addEventListener("click", () => {
+    detachListeners();
+
     gameId = generateGameId();
     hostGameCode.textContent = gameId;
 
-    db.ref(`games/${gameId}`).set({
-      calledNumbers: [],
-      players: {}
-    });
-
+    // reset host UI
     calledNumbers = [];
     lastNumberDiv.textContent = "";
     calledList.innerHTML = "";
     playerListDiv.innerHTML = "";
 
-    startPlayersListener();
-    show(hostScreen);
+    const payload = {
+      calledNumbers: [],
+      players: {},
+      createdAt: Date.now()
+    };
+
+    db.ref(`games/${gameId}`).set(payload)
+      .then(() => {
+        console.log("✅ Game created:", gameId);
+        startPlayersListener();
+        show(hostScreen);
+      })
+      .catch((err) => {
+        console.error("❌ Host create failed:", err);
+        alert("Host failed to create game in Firebase: " + err.message);
+
+        // If this alerts "Permission denied", your DB Rules are blocking writes.
+      });
   });
 
   /* ---------------------------------------------------------
@@ -120,6 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
   joinBtn.addEventListener("click", () => show(joinScreen));
 
   joinGameStartBtn.addEventListener("click", () => {
+    detachListeners();
+
     playerName = playerNameInput.value.trim();
     gameId = joinCodeInput.value.trim();
 
@@ -128,26 +169,38 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    db.ref(`games/${gameId}`).once("value").then((snapshot) => {
-      if (!snapshot.exists()) {
-        alert("Game does not exist.");
-        return;
-      }
+    db.ref(`games/${gameId}`).once("value")
+      .then(snapshot => {
+        if (!snapshot.exists()) {
+          alert("Game does not exist.");
+          return;
+        }
 
-      generateCard();
+        generateCard();
 
-      db.ref(`games/${gameId}/players/${playerName}`).set({
-        card: card,
-        marked: marked
+        return db.ref(`games/${gameId}/players/${playerName}`).set({
+          card: card,
+          marked: marked
+        });
+      })
+      .then(() => {
+        if (!gameId) return;
+
+        // Listen for called numbers (player)
+        calledNumbersRef = db.ref(`games/${gameId}/calledNumbers`);
+        calledNumbersRef.on("value", (snapshot) => {
+          calledNumbers = snapshot.val() || [];
+          renderCalledNumbersPlayer();
+        }, (err) => {
+          console.error("❌ calledNumbers listener error:", err);
+        });
+
+        show(playerScreen);
+      })
+      .catch(err => {
+        console.error("❌ Join failed:", err);
+        alert("Join failed: " + err.message);
       });
-
-      db.ref(`games/${gameId}/calledNumbers`).on("value", (snap) => {
-        calledNumbers = snap.val() || [];
-        renderCalledNumbersPlayer();
-      });
-
-      show(playerScreen);
-    });
   });
 
   /* ---------------------------------------------------------
@@ -163,7 +216,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } while (calledNumbers.includes(n));
 
     calledNumbers.push(n);
-    db.ref(`games/${gameId}/calledNumbers`).set(calledNumbers);
+
+    db.ref(`games/${gameId}/calledNumbers`).set(calledNumbers)
+      .catch(err => {
+        console.error("❌ failed to write calledNumbers:", err);
+        alert("Failed to write called number: " + err.message);
+      });
 
     lastNumberDiv.textContent = n;
 
@@ -227,10 +285,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cell.addEventListener("click", () => {
           if (card[r][c] === "FREE") return;
+
           marked[r][c] = !marked[r][c];
           renderCard();
 
-          db.ref(`games/${gameId}/players/${playerName}/marked`).set(marked);
+          db.ref(`games/${gameId}/players/${playerName}/marked`).set(marked)
+            .catch(err => console.error("❌ failed to sync marked:", err));
 
           if (checkBingo()) bingoMessage.classList.remove("hidden");
         });
@@ -245,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
   --------------------------------------------------------- */
   function renderCalledNumbersPlayer() {
     calledListPlayer.innerHTML = "";
-    calledNumbers.forEach((n) => {
+    calledNumbers.forEach(n => {
       const div = document.createElement("div");
       div.classList.add("called-number");
       div.textContent = n;
@@ -258,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
   --------------------------------------------------------- */
   function checkBingo() {
     for (let r = 0; r < 5; r++) {
-      if (marked[r].every((m) => m)) return true;
+      if (marked[r].every(m => m)) return true;
     }
 
     for (let c = 0; c < 5; c++) {
@@ -285,7 +345,18 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------------------------------------------------------
      BACK BUTTONS
   --------------------------------------------------------- */
-  backFromHost.addEventListener("click", () => show(homeScreen));
-  backFromJoin.addEventListener("click", () => show(homeScreen));
-  backFromPlayer.addEventListener("click", () => show(homeScreen));
+  backFromHost.addEventListener("click", () => {
+    detachListeners();
+    show(homeScreen);
+  });
+
+  backFromJoin.addEventListener("click", () => {
+    detachListeners();
+    show(homeScreen);
+  });
+
+  backFromPlayer.addEventListener("click", () => {
+    detachListeners();
+    show(homeScreen);
+  });
 });
