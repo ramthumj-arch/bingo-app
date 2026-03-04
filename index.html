@@ -11,6 +11,7 @@
     <!-- HOME PAGE -->
     <div id="homeScreen">
       <h1>Team Bingo</h1>
+
       <div class="home-buttons">
         <button id="hostBtn">Host a Game</button>
         <button id="joinBtn">Join a Game</button>
@@ -75,11 +76,11 @@
 
   </div>
 
-  <!-- ✅ Firebase v8 (matches your firebase.initializeApp syntax) -->
+  <!-- IMPORTANT: Your JS uses firebase.initializeApp / firebase.database(),
+       so you MUST use Firebase v8 (or v9/v10 compat). -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <!-- App script -->
   <script src="script.js"></script>
 </body>
 </html>
