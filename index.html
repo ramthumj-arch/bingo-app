@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Team Bingo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -11,7 +12,6 @@
     <!-- HOME PAGE -->
     <div id="homeScreen">
       <h1>Team Bingo</h1>
-
       <div class="home-buttons">
         <button id="hostBtn">Host a Game</button>
         <button id="joinBtn">Join a Game</button>
@@ -45,10 +45,13 @@
     <div id="joinScreen" class="hidden">
       <h1>Join Game</h1>
 
-      <label>Your Name</label>
+      <label for="playerNameInput">Your Name</label>
       <input id="playerNameInput" placeholder="Enter your name" />
 
-      <label>Game Code</label>
+      <label for="oracleIdInput">Oracle ID (7 digits)</label>
+      <input id="oracleIdInput" placeholder="1234567" inputmode="numeric" />
+
+      <label for="joinCodeInput">Game Code</label>
       <input id="joinCodeInput" placeholder="Enter join code" />
 
       <button id="joinGameStartBtn">Join Game</button>
@@ -76,8 +79,7 @@
 
   </div>
 
-  <!-- IMPORTANT: Your JS uses firebase.initializeApp / firebase.database(),
-       so you MUST use Firebase v8 (or v9/v10 compat). -->
+  <!-- Firebase v8 (matches firebase.initializeApp + firebase.database usage) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
