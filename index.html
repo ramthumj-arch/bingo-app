@@ -6,16 +6,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-  </div>
-   <!-- Firebase MUST be loaded here, inside the body, before script.js -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
 
-  <!-- Your script must load AFTER Firebase -->
-  <script src="script.js"></script>
-</body>
-</html>
+  <div class="app">
 
     <!-- HOME PAGE -->
     <div id="homeScreen">
@@ -61,7 +53,7 @@
       <button class="backBtn" id="backFromJoin">Back</button>
     </div>
 
-    <!-- PLAYER GAME PAGE -->
+    <!-- PLAYER PAGE -->
     <div id="playerScreen" class="hidden">
       <h1>Your Bingo Card</h1>
 
@@ -82,6 +74,11 @@
 
   </div>
 
+  <!-- Use Firebase v8 (matches your JS syntax) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
   <script src="script.js"></script>
+
 </body>
 </html>
