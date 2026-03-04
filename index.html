@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Team Bingo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1>Team Bingo</h1>
+
+    <div class="controls">
+      <button id="newCardBtn">New Card</button>
+      <button id="callNumberBtn">Call Next Number</button>
+      <div id="lastNumber"></div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <div class="header-row">
+          <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+        </div>
+        <div id="cardGrid" class="grid"></div>
+      </div>
+
+      <div class="called">
+        <h2>Numbers Called</h2>
+        <div id="calledList"></div>
+      </div>
+    </div>
+
+    <div id="bingoMessage" class="bingo-message hidden">
+      BINGO! 🎉
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
