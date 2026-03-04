@@ -228,4 +228,37 @@ function renderCalledNumbersPlayer() {
    BINGO CHECK
 --------------------------------------------------------- */
 function checkBingo() {
-  for (let r = 0
+  // Check rows
+  for (let r = 0; r < 5; r++) {
+    if (marked[r].every(m => m)) return true;
+  }
+
+  // Check columns
+  for (let c = 0; c < 5; c++) {
+    let all = true;
+    for (let r = 0; r < 5; r++) {
+      if (!marked[r][c]) {
+        all = false;
+        break;
+      }
+    }
+    if (all) return true;
+  }
+
+  // Check diagonals
+  let diag1 = true;
+  let diag2 = true;
+  for (let i = 0; i < 5; i++) {
+    if (!marked[i][i]) diag1 = false;
+    if (!marked[i][4 - i]) diag2 = false;
+  }
+
+  return diag1 || diag2;
+}
+
+/* ---------------------------------------------------------
+   BACK BUTTONS
+--------------------------------------------------------- */
+backFromHost.addEventListener("click", () => show(homeScreen));
+backFromJoin.addEventListener("click", () => show(homeScreen));
+backFromPlayer.addEventListener("click", () => show(homeScreen));
