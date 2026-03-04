@@ -1,7 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  /* ---------------------------------------------------------
-     FIREBASE SETUP
-  --------------------------------------------------------- */
   const firebaseConfig = {
     apiKey: "AIzaSyBNq30kO9C38ARmcMXrmooN7o06QTpHi0c",
     authDomain: "bingo-app-2411a.firebaseapp.com",
@@ -15,9 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  /* ---------------------------------------------------------
-     SCREEN ELEMENTS
-  --------------------------------------------------------- */
   const homeScreen = document.getElementById("homeScreen");
   const hostScreen = document.getElementById("hostScreen");
   const joinScreen = document.getElementById("joinScreen");
@@ -43,9 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const calledListPlayer = document.getElementById("calledListPlayer");
   const bingoMessage = document.getElementById("bingoMessage");
 
-  /* ---------------------------------------------------------
-     GAME STATE
-  --------------------------------------------------------- */
   let gameId = null;
   let playerName = "";
   let card = [];
@@ -73,9 +64,13 @@ document.addEventListener("DOMContentLoaded", () => {
     calledRef = null;
   }
 
-  /* ---------------------------------------------------------
-     HOST: LISTEN FOR PLAYERS JOINED
-  --------------------------------------------------------- */
+  function normalizeCalledNumbers(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((n) => Number(n))
+      .filter((n) => Number.isFinite(n));
+  }
+
   function startPlayersListener() {
     if (playersRef) playersRef.off();
     playersRef = db.ref(`games/${gameId}/players`);
@@ -91,23 +86,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ---------------------------------------------------------
-     PLAYER: LISTEN FOR CALLED NUMBERS
-  --------------------------------------------------------- */
   function startCalledListener() {
     if (calledRef) calledRef.off();
     calledRef = db.ref(`games/${gameId}/calledNumbers`);
     calledRef.on("value", (snap) => {
-      calledNumbers = snap.val() || [];
+      const raw = snap.val() || [];
+      calledNumbers = normalizeCalledNumbers(raw);
       renderCalledNumbersPlayer();
-      // NOTE: we also re-render the card so the "invalid click" logic uses fresh calledNumbers
       renderCard();
     });
   }
 
-  /* ---------------------------------------------------------
-     HOST GAME
-  --------------------------------------------------------- */
   hostBtn.addEventListener("click", () => {
     detach();
 
@@ -125,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(() => db.ref(`games/${gameId}`).once("value"))
       .then((snap) => {
         if (!snap.exists()) {
-          alert("Host write did not persist (check Firebase Rules).");
+          alert("Host write did not persist. Check Firebase Realtime Database rules.");
           return;
         }
         startPlayersListener();
@@ -137,9 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  /* ---------------------------------------------------------
-     JOIN GAME
-  --------------------------------------------------------- */
   joinBtn.addEventListener("click", () => show(joinScreen));
 
   joinGameStartBtn.addEventListener("click", () => {
@@ -178,9 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  /* ---------------------------------------------------------
-     HOST CALL NEXT NUMBER
-  --------------------------------------------------------- */
   callNumberBtn.addEventListener("click", () => {
     if (!gameId) return;
     if (calledNumbers.length === 75) return;
@@ -203,9 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
     calledList.appendChild(div);
   });
 
-  /* ---------------------------------------------------------
-     BINGO CARD GENERATION
-  --------------------------------------------------------- */
   function generateColumn(min, max, count) {
     const nums = [];
     while (nums.length < count) {
@@ -242,9 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCard();
   }
 
-  /* ---------------------------------------------------------
-     RENDER CARD (UPDATED: invalid click flashes red)
-  --------------------------------------------------------- */
   function renderCard() {
     cardGrid.innerHTML = "";
 
@@ -262,8 +239,9 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.addEventListener("click", () => {
           if (value === "FREE") return;
 
-          // 🚫 Not called yet -> flash red for ~2 seconds, do NOT mark
-          if (!calledNumbers.includes(value)) {
+          const num = Number(value);
+
+          if (!Number.isFinite(num) || !calledNumbers.includes(num)) {
             cell.classList.add("invalid");
             setTimeout(() => {
               cell.classList.remove("invalid");
@@ -271,7 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
           }
 
-          // ✅ Called -> allow marking as normal
           marked[r][c] = !marked[r][c];
           renderCard();
 
@@ -285,9 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* ---------------------------------------------------------
-     RENDER CALLED NUMBERS FOR PLAYER
-  --------------------------------------------------------- */
   function renderCalledNumbersPlayer() {
     calledListPlayer.innerHTML = "";
     calledNumbers.forEach((n) => {
@@ -298,9 +272,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ---------------------------------------------------------
-     BINGO CHECK
-  --------------------------------------------------------- */
   function checkBingo() {
     for (let r = 0; r < 5; r++) if (marked[r].every(m => m)) return true;
 
@@ -320,9 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return d1 || d2;
   }
 
-  /* ---------------------------------------------------------
-     BACK BUTTONS
-  --------------------------------------------------------- */
   backFromHost.addEventListener("click", () => { detach(); show(homeScreen); });
   backFromJoin.addEventListener("click", () => { detach(); show(homeScreen); });
   backFromPlayer.addEventListener("click", () => { detach(); show(homeScreen); });
