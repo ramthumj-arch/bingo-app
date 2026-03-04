@@ -1,124 +1,103 @@
-// =========================
-// NEW: HOME + GAME ID LOGIC
-// =========================
-
 // Screens
 const homeScreen = document.getElementById("homeScreen");
-const gameScreen = document.getElementById("gameScreen");
-
-// Home screen inputs
-const hostNameInput = document.getElementById("hostNameInput");
-const playerNameInput = document.getElementById("playerNameInput");
-const joinCodeInput = document.getElementById("joinCodeInput");
+const hostScreen = document.getElementById("hostScreen");
+const joinScreen = document.getElementById("joinScreen");
+const playerScreen = document.getElementById("playerScreen");
 
 // Buttons
-const createGameBtn = document.getElementById("createGameBtn");
-const joinGameBtn = document.getElementById("joinGameBtn");
-const backToHomeBtn = document.getElementById("backToHomeBtn");
+const hostBtn = document.getElementById("hostBtn");
+const joinBtn = document.getElementById("joinBtn");
+const backFromHost = document.getElementById("backFromHost");
+const backFromJoin = document.getElementById("backFromJoin");
+const backFromPlayer = document.getElementById("backFromPlayer");
 
-// Game info display
-const gameCodeDisplay = document.getElementById("gameCodeDisplay");
-const playerRoleDisplay = document.getElementById("playerRoleDisplay");
-const playerNameDisplay = document.getElementById("playerNameDisplay");
+// Host elements
+const hostGameCode = document.getElementById("hostGameCode");
+const callNumberBtn = document.getElementById("callNumberBtn");
+const lastNumberDiv = document.getElementById("lastNumber");
+const calledList = document.getElementById("calledList");
+
+// Join elements
+const playerNameInput = document.getElementById("playerNameInput");
+const joinCodeInput = document.getElementById("joinCodeInput");
+const joinGameStartBtn = document.getElementById("joinGameStartBtn");
+
+// Player elements
+const cardGrid = document.getElementById("cardGrid");
+const calledListPlayer = document.getElementById("calledListPlayer");
+const bingoMessage = document.getElementById("bingoMessage");
 
 // Game state
 let gameId = null;
-let isHost = false;
 let playerName = "";
+let card = [];
+let marked = [];
+let calledNumbers = [];
 
-// Generate 6‑digit join code
+// Navigation helpers
+function show(screen) {
+  homeScreen.classList.add("hidden");
+  hostScreen.classList.add("hidden");
+  joinScreen.classList.add("hidden");
+  playerScreen.classList.add("hidden");
+  screen.classList.remove("hidden");
+}
+
+// Generate 6-digit code
 function generateGameId() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Navigation helpers
-function showGameScreen() {
-  homeScreen.classList.add("hidden");
-  gameScreen.classList.remove("hidden");
-}
-
-function showHomeScreen() {
-  gameScreen.classList.add("hidden");
-  homeScreen.classList.remove("hidden");
-
-  // Reset state
-  gameId = null;
-  isHost = false;
-  playerName = "";
+// Host a game
+hostBtn.addEventListener("click", () => {
+  gameId = generateGameId();
+  hostGameCode.textContent = gameId;
   calledNumbers = [];
   lastNumberDiv.textContent = "";
-  calledListDiv.innerHTML = "";
-  bingoMessage.classList.add("hidden");
-}
+  calledList.innerHTML = "";
+  show(hostScreen);
+});
 
-// Create Game
-createGameBtn.addEventListener("click", () => {
-  const name = hostNameInput.value.trim();
-  if (!name) {
-    alert("Please enter your name.");
+// Join a game
+joinBtn.addEventListener("click", () => show(joinScreen));
+
+joinGameStartBtn.addEventListener("click", () => {
+  playerName = playerNameInput.value.trim();
+  gameId = joinCodeInput.value.trim();
+
+  if (!playerName || !gameId) {
+    alert("Enter your name and join code.");
     return;
   }
 
-  gameId = generateGameId();
-  isHost = true;
-  playerName = name;
-
-  gameCodeDisplay.textContent = gameId;
-  playerRoleDisplay.textContent = "Host";
-  playerNameDisplay.textContent = playerName;
-
-  callNumberBtn.disabled = false;
-
   generateCard();
-  showGameScreen();
+  show(playerScreen);
 });
 
-// Join Game
-joinGameBtn.addEventListener("click", () => {
-  const name = playerNameInput.value.trim();
-  const code = joinCodeInput.value.trim();
+// Host calls next number
+callNumberBtn.addEventListener("click", () => {
+  if (calledNumbers.length === 75) return;
 
-  if (!name || !code) {
-    alert("Please enter your name and game code.");
-    return;
-  }
+  let n;
+  do {
+    n = Math.floor(Math.random() * 75) + 1;
+  } while (calledNumbers.includes(n));
 
-  gameId = code;
-  isHost = false;
-  playerName = name;
+  calledNumbers.push(n);
+  lastNumberDiv.textContent = n;
 
-  gameCodeDisplay.textContent = gameId;
-  playerRoleDisplay.textContent = "Player";
-  playerNameDisplay.textContent = playerName;
+  const div = document.createElement("div");
+  div.classList.add("called-number");
+  div.textContent = n;
+  calledList.appendChild(div);
 
-  callNumberBtn.disabled = true;
-
-  generateCard();
-  showGameScreen();
+  const div2 = document.createElement("div");
+  div2.classList.add("called-number");
+  div2.textContent = n;
+  calledListPlayer.appendChild(div2);
 });
 
-// Leave Game
-backToHomeBtn.addEventListener("click", () => {
-  showHomeScreen();
-});
-
-
-// =========================
-// ORIGINAL BINGO GAME LOGIC
-// (Your code — unchanged)
-// =========================
-
-const cardGrid = document.getElementById("cardGrid");
-const newCardBtn = document.getElementById("newCardBtn");
-const callNumberBtn = document.getElementById("callNumberBtn");
-const lastNumberDiv = document.getElementById("lastNumber");
-const calledListDiv = document.getElementById("calledList");
-const bingoMessage = document.getElementById("bingoMessage");
-
-let card = [];          // 5x5 numbers
-let marked = [];        // 5x5 booleans
-let calledNumbers = []; // numbers 1–75
-
+// Bingo card generation
 function generateColumn(min, max, count) {
   const nums = [];
   while (nums.length < count) {
@@ -138,47 +117,37 @@ function generateCard() {
   card = [];
   marked = [];
 
-  for (let row = 0; row < 5; row++) {
-    card[row] = [];
-    marked[row] = [];
-    for (let col = 0; col < 5; col++) {
-      let value;
-      if (col === 0) value = b[row];
-      if (col === 1) value = i[row];
-      if (col === 2) value = n[row];
-      if (col === 3) value = g[row];
-      if (col === 4) value = o[row];
-
-      card[row][col] = value;
-      marked[row][col] = false;
+  for (let r = 0; r < 5; r++) {
+    card[r] = [];
+    marked[r] = [];
+    for (let c = 0; c < 5; c++) {
+      let v = [b, i, n, g, o][c][r];
+      card[r][c] = v;
+      marked[r][c] = false;
     }
   }
 
-  // Free space in center
   card[2][2] = "FREE";
   marked[2][2] = true;
 
   renderCard();
-  bingoMessage.classList.add("hidden");
 }
 
 function renderCard() {
   cardGrid.innerHTML = "";
-  for (let row = 0; row < 5; row++) {
-    for (let col = 0; col < 5; col++) {
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
       const cell = document.createElement("div");
       cell.classList.add("cell");
-      if (row === 2 && col === 2) cell.classList.add("free");
-      if (marked[row][col]) cell.classList.add("marked");
-      cell.textContent = card[row][col];
+      if (r === 2 && c === 2) cell.classList.add("free");
+      if (marked[r][c]) cell.classList.add("marked");
+      cell.textContent = card[r][c];
 
       cell.addEventListener("click", () => {
-        if (card[row][col] === "FREE") return;
-        marked[row][col] = !marked[row][col];
+        if (card[r][c] === "FREE") return;
+        marked[r][c] = !marked[r][c];
         renderCard();
-        if (checkBingo()) {
-          bingoMessage.classList.remove("hidden");
-        }
+        if (checkBingo()) bingoMessage.classList.remove("hidden");
       });
 
       cardGrid.appendChild(cell);
@@ -186,62 +155,15 @@ function renderCard() {
   }
 }
 
-function callNextNumber() {
-  if (!isHost) return; // Only host can call numbers
-  if (calledNumbers.length === 75) return;
-
-  let n;
-  do {
-    n = Math.floor(Math.random() * 75) + 1;
-  } while (calledNumbers.includes(n));
-
-  calledNumbers.push(n);
-  lastNumberDiv.textContent = n;
-  renderCalledNumbers();
-}
-
-function renderCalledNumbers() {
-  calledListDiv.innerHTML = "";
-  calledNumbers.forEach((n) => {
-    const div = document.createElement("div");
-    div.classList.add("called-number");
-    div.textContent = n;
-    calledListDiv.appendChild(div);
-  });
-}
-
 function checkBingo() {
-  // Rows
-  for (let r = 0; r < 5; r++) {
-    if (marked[r].every((m) => m)) return true;
-  }
-  // Columns
-  for (let c = 0; c < 5; c++) {
-    let all = true;
-    for (let r = 0; r < 5; r++) {
-      if (!marked[r][c]) {
-        all = false;
-        break;
-      }
-    }
-    if (all) return true;
-  }
-  // Diagonals
-  let diag1 = true;
-  let diag2 = true;
-  for (let i = 0; i < 5; i++) {
-    if (!marked[i][i]) diag1 = false;
-    if (!marked[i][4 - i]) diag2 = false;
-  }
-  return diag1 || diag2;
+  for (let r = 0; r < 5; r++) if (marked[r].every(m => m)) return true;
+  for (let c = 0; c < 5; c++) if (marked.every(row => row[c])) return true;
+  if ([0,1,2,3,4].every(i => marked[i][i])) return true;
+  if ([0,1,2,3,4].every(i => marked[i][4-i])) return true;
+  return false;
 }
 
-newCardBtn.addEventListener("click", () => {
-  generateCard();
-  bingoMessage.classList.add("hidden");
-});
-
-callNumberBtn.addEventListener("click", callNextNumber);
-
-// Start on home screen
-showHomeScreen();
+// Back buttons
+backFromHost.addEventListener("click", () => show(homeScreen));
+backFromJoin.addEventListener("click", () => show(homeScreen));
+backFromPlayer.addEventListener("click", () => show(homeScreen));
