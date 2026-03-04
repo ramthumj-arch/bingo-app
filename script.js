@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const playerListDiv = document.getElementById("playerList");
 
   const playerNameInput = document.getElementById("playerNameInput");
+  const oracleIdInput = document.getElementById("oracleIdInput");
   const joinCodeInput = document.getElementById("joinCodeInput");
   const joinGameStartBtn = document.getElementById("joinGameStartBtn");
 
@@ -38,10 +39,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const bingoMessage = document.getElementById("bingoMessage");
 
   let gameId = null;
+
   let playerName = "";
+  let oracleId = "";
+
   let card = [];
   let marked = [];
   let calledNumbers = [];
+
   let playersRef = null;
   let calledRef = null;
 
@@ -66,9 +71,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function normalizeCalledNumbers(raw) {
     if (!Array.isArray(raw)) return [];
-    return raw
-      .map((n) => Number(n))
-      .filter((n) => Number.isFinite(n));
+    return raw.map((n) => Number(n)).filter((n) => Number.isFinite(n));
+  }
+
+  function isValidOracleId(id) {
+    return /^\d{7}$/.test(id);
   }
 
   function startPlayersListener() {
@@ -77,10 +84,14 @@ document.addEventListener("DOMContentLoaded", () => {
     playersRef.on("value", (snap) => {
       const players = snap.val() || {};
       playerListDiv.innerHTML = "";
-      Object.keys(players).forEach((name) => {
+
+      Object.keys(players).forEach((oid) => {
+        const data = players[oid] || {};
+        const nm = typeof data.name === "string" ? data.name : "Unknown";
+
         const div = document.createElement("div");
         div.className = "player-name";
-        div.textContent = name;
+        div.textContent = `${nm} (${oid})`;
         playerListDiv.appendChild(div);
       });
     });
@@ -90,8 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (calledRef) calledRef.off();
     calledRef = db.ref(`games/${gameId}/calledNumbers`);
     calledRef.on("value", (snap) => {
-      const raw = snap.val() || [];
-      calledNumbers = normalizeCalledNumbers(raw);
+      calledNumbers = normalizeCalledNumbers(snap.val() || []);
       renderCalledNumbersPlayer();
       renderCard();
     });
@@ -132,10 +142,16 @@ document.addEventListener("DOMContentLoaded", () => {
     detach();
 
     playerName = playerNameInput.value.trim();
+    oracleId = (oracleIdInput.value || "").trim();
     gameId = joinCodeInput.value.trim();
 
-    if (!playerName || !gameId) {
-      alert("Enter your name and join code.");
+    if (!playerName || !oracleId || !gameId) {
+      alert("Enter your name, Oracle ID, and join code.");
+      return;
+    }
+
+    if (!isValidOracleId(oracleId)) {
+      alert("Oracle ID must be exactly 7 digits.");
       return;
     }
 
@@ -146,15 +162,38 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
+        // Check if this Oracle ID already joined this game
+        return db.ref(`games/${gameId}/players/${oracleId}`).once("value");
+      })
+      .then((playerSnap) => {
+        if (!playerSnap) return;
+
+        if (playerSnap.exists()) {
+          alert("That Oracle ID has already joined this game.");
+          return;
+        }
+
         generateCard();
 
-        return db.ref(`games/${gameId}/players/${playerName}`).set({
+        // Store player by Oracle ID so it can only exist once
+        return db.ref(`games/${gameId}/players/${oracleId}`).set({
+          name: playerName,
+          oracleId: oracleId,
           card: card,
-          marked: marked
+          marked: marked,
+          joinedAt: Date.now()
         });
       })
       .then(() => {
-        if (!gameId) return;
+        // If join was blocked above, oracleId exists but we returned without writing.
+        // We can confirm the player exists before proceeding.
+        if (!gameId || !oracleId) return;
+
+        return db.ref(`games/${gameId}/players/${oracleId}`).once("value");
+      })
+      .then((confirmSnap) => {
+        if (!confirmSnap || !confirmSnap.exists()) return;
+
         startCalledListener();
         show(playerScreen);
       })
@@ -240,19 +279,18 @@ document.addEventListener("DOMContentLoaded", () => {
           if (value === "FREE") return;
 
           const num = Number(value);
-
           if (!Number.isFinite(num) || !calledNumbers.includes(num)) {
             cell.classList.add("invalid");
-            setTimeout(() => {
-              cell.classList.remove("invalid");
-            }, 2000);
+            setTimeout(() => cell.classList.remove("invalid"), 2000);
             return;
           }
 
           marked[r][c] = !marked[r][c];
           renderCard();
 
-          db.ref(`games/${gameId}/players/${playerName}/marked`).set(marked);
+          if (oracleId) {
+            db.ref(`games/${gameId}/players/${oracleId}/marked`).set(marked);
+          }
 
           if (checkBingo()) bingoMessage.classList.remove("hidden");
         });
@@ -273,17 +311,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function checkBingo() {
-    for (let r = 0; r < 5; r++) if (marked[r].every(m => m)) return true;
+    for (let r = 0; r < 5; r++) if (marked[r].every((m) => m)) return true;
 
     for (let c = 0; c < 5; c++) {
       let all = true;
       for (let r = 0; r < 5; r++) {
-        if (!marked[r][c]) { all = false; break; }
+        if (!marked[r][c]) {
+          all = false;
+          break;
+        }
       }
       if (all) return true;
     }
 
-    let d1 = true, d2 = true;
+    let d1 = true;
+    let d2 = true;
     for (let i = 0; i < 5; i++) {
       if (!marked[i][i]) d1 = false;
       if (!marked[i][4 - i]) d2 = false;
@@ -291,7 +333,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return d1 || d2;
   }
 
-  backFromHost.addEventListener("click", () => { detach(); show(homeScreen); });
-  backFromJoin.addEventListener("click", () => { detach(); show(homeScreen); });
-  backFromPlayer.addEventListener("click", () => { detach(); show(homeScreen); });
+  backFromHost.addEventListener("click", () => {
+    detach();
+    show(homeScreen);
+  });
+
+  backFromJoin.addEventListener("click", () => {
+    detach();
+    show(homeScreen);
+  });
+
+  backFromPlayer.addEventListener("click", () => {
+    detach();
+    show(homeScreen);
+  });
 });
