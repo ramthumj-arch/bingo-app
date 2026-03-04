@@ -1,180 +1,177 @@
 body {
-font-family: system-ui, sans-serif;
-background: #0f172a;
-color: #e5e7eb;
-margin: 0;
-display: flex;
-justify-content: center;
-padding: 20px;
+  font-family: system-ui, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
 }
 
 .app {
-max-width: 900px;
-width: 100%;
+  max-width: 900px;
+  width: 100%;
 }
 
 h1 {
-text-align: center;
-margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .hidden {
-display: none;
+  display: none;
 }
 
 .home-buttons {
-display: flex;
-flex-direction: column;
-gap: 16px;
-margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 40px;
 }
 
 button {
-background: #2563eb;
-color: white;
-border: none;
-padding: 12px 20px;
-border-radius: 8px;
-cursor: pointer;
-font-size: 18px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
 }
 
 button:hover {
-background: #1d4ed8;
+  background: #1d4ed8;
 }
 
 .backBtn {
-margin-top: 20px;
-background: #475569;
+  margin-top: 20px;
+  background: #475569;
 }
 
 label {
-display: block;
-margin-top: 12px;
-margin-bottom: 4px;
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
 }
 
 input {
-width: 100%;
-padding: 10px;
-border-radius: 6px;
-border: 1px solid #475569;
-background: #1e293b;
-color: white;
-margin-bottom: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: white;
+  margin-bottom: 12px;
 }
 
 .info-box {
-background: #1e293b;
-padding: 16px;
-border-radius: 8px;
-margin-bottom: 20px;
+  background: #1e293b;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .game-code {
-font-size: 32px;
-font-weight: bold;
-text-align: center;
-margin-top: 10px;
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .controls {
-display: flex;
-gap: 16px;
-justify-content: center;
-align-items: center;
-margin-bottom: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 #lastNumber {
-font-size: 32px;
-font-weight: bold;
+  font-size: 32px;
+  font-weight: bold;
 }
 
-#calledList,
-#calledListPlayer {
-display: flex;
-flex-wrap: wrap;
-gap: 6px;
+#calledList, #calledListPlayer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .called-number {
-padding: 6px 10px;
-background: #1e293b;
-border-radius: 6px;
-font-size: 14px;
+  padding: 6px 10px;
+  background: #1e293b;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
 .card {
-background: #1e293b;
-padding: 16px;
-border-radius: 8px;
-margin-bottom: 20px;
+  background: #1e293b;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .header-row {
-display: grid;
-grid-template-columns: repeat(5, 60px);
-text-align: center;
-font-size: 22px;
-font-weight: bold;
-margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 .grid {
-display: grid;
-grid-template-columns: repeat(5, 60px);
-gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  gap: 6px;
 }
 
 .cell {
-width: 60px;
-height: 60px;
-background: #0f172a;
-border-radius: 6px;
-display: flex;
-justify-content: center;
-align-items: center;
-cursor: pointer;
-font-size: 18px;
+  width: 60px;
+  height: 60px;
+  background: #0f172a;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 18px;
 }
 
 .cell.marked {
-background: #22c55e;
-color: #022c22;
-font-weight: bold;
+  background: #22c55e;
+  color: #022c22;
+  font-weight: bold;
 }
 
 .cell.free {
-background: #facc15;
-color: #1f2937;
-font-weight: bold;
+  background: #facc15;
+  color: #1f2937;
+  font-weight: bold;
 }
 
 .bingo-message {
-font-size: 32px;
-font-weight: bold;
-text-align: center;
-color: #22c55e;
-margin-top: 20px;
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  color: #22c55e;
+  margin-top: 20px;
 }
 
-/* ----------------------------
-NEW: HOST PLAYER LIST STYLE
----------------------------- */
-
+/* ✅ NEW: Joined players list (host panel) */
 #playerList {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 12px;
 }
 
 .player-name {
-background: #2563eb;
-color: white;
-padding: 6px 12px;
-border-radius: 8px;
-font-size: 14px;
-font-weight: bold;
+  background: #2563eb;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
 }
