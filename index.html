@@ -6,13 +6,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
   <div class="app">
 
     <!-- HOME PAGE -->
     <div id="homeScreen">
       <h1>Team Bingo</h1>
-
       <div class="home-buttons">
         <button id="hostBtn">Host a Game</button>
         <button id="joinBtn">Join a Game</button>
@@ -36,6 +34,9 @@
       <h2>Numbers Called</h2>
       <div id="calledList"></div>
 
+      <h2>Players Joined</h2>
+      <div id="playerList"></div>
+
       <button class="backBtn" id="backFromHost">Back</button>
     </div>
 
@@ -53,7 +54,7 @@
       <button class="backBtn" id="backFromJoin">Back</button>
     </div>
 
-    <!-- PLAYER PAGE -->
+    <!-- PLAYER GAME PAGE -->
     <div id="playerScreen" class="hidden">
       <h1>Your Bingo Card</h1>
 
@@ -74,11 +75,11 @@
 
   </div>
 
-  <!-- Use Firebase v8 (matches your JS syntax) -->
+  <!-- ✅ Firebase v8 (matches your firebase.initializeApp syntax) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+  <!-- App script -->
   <script src="script.js"></script>
-
 </body>
 </html>
